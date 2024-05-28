@@ -205,8 +205,14 @@ Include the ExperimentSDK script in the `<head>` of your website:
         "hashed_id": "unique_hashed_id",
         "experiment_id": 1,
         "attributes": {
+            "browser": "Chrome",
+            "browser_version": "89",
             "device_type": "mobile",
-            "location": "US"
+            "os": "Android",
+            "location": {
+                "latitude": 37.7749,
+                "longitude": -122.4194
+            }
         }
     }
     ```

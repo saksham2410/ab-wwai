@@ -1,37 +1,28 @@
-import random
-from ab_testing.models import UserAssignment, Variant, Experiment, db
-from datetime import datetime
+from flask import Blueprint, request, jsonify
+from ab_testing.services.assignment_service import AssignmentService
+from ab_testing.services.user_service import UserService
 
-class AssignmentService:
-    
-    @staticmethod
-    def get_user_variant(user_attributes):
-        if user_attributes.get('device_type') == 'mobile':
-            return 'Mobile Variant'
-        elif user_attributes.get('location') == 'US':
-            return 'US Variant'
-        else:
-            return 'Default Variant'
-    
-    @staticmethod
-    def assign_user_to_variant(user_id, experiment_id, user_attributes):
-        variants = Variant.query.filter_by(experiment_id=experiment_id).all()
-        
-        assigned_variant = AssignmentService.get_user_variant(user_attributes)
-        
-        if not assigned_variant:
-            assigned_variant = random.choices(
-                [variant.id for variant in variants],
-                [variant.weight for variant in variants]
-            )[0]
+user_assignment_bp = Blueprint('user_assignments', __name__)
 
-        assignment = UserAssignment(
-            user_id=user_id,
-            experiment_id=experiment_id,
-            variant_id=assigned_variant,
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(assignment)
-        db.session.commit()
-        
-        return assignment
+@user_assignment_bp.route('/assign', methods=['POST'])
+def assign_user():
+    data = request.get_json()
+    hashed_id = data['hashed_id']
+    experiment_id = data['experiment_id']
+    user_attributes = data['attributes']
+    
+    user = UserService.get_user_by_hashed_id(hashed_id)
+    if not user:
+        user = UserService.create_user(hashed_id, user_attributes)
+    
+    assignment = AssignmentService.assign_user_to_variant(user.id, experiment_id, user_attributes)
+    
+    return jsonify({
+        'message': 'User assigned to variant successfully',
+        'assignment': {
+            'user_id': assignment.user_id,
+            'experiment_id': assignment.experiment_id,
+            'variant_id': assignment.variant_id,
+            'timestamp': assignment.timestamp
+        }
+    }), 201
