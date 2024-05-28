@@ -4,7 +4,7 @@
 Include the ExperimentSDK script in the `<head>` of your website:
 
 ```html
-<script src="path/to/experimentsdk.js"></script>
+<script src="cdn/wwai.js"></script>
 ```
 
 ## Example Usage
