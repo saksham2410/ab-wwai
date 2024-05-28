@@ -49,7 +49,7 @@
         });
     }
 
-    async function createSessionId() {
+    function createSessionId() {
         return '_' + Math.random().toString(36).substr(2, 9);
     }
 
@@ -65,26 +65,38 @@
     }
 
     async function determineVariantForUser(experimentId) {
-        const sessionId = await createSessionId();
-        const browserInfo = getBrowserInfo();
-        const deviceType = getDeviceType();
-        const os = getOS();
-        const location = await getLocation();
+        let sessionId = sessionStorage.getItem('sessionId');
+        let variantId = sessionStorage.getItem('variantId');
 
-        const userAttributes = {
-            hashed_id: sessionId,
-            experiment_id: experimentId,
-            attributes: {
-                browser: browserInfo.name,
-                browser_version: browserInfo.version,
-                device_type: deviceType,
-                os: os,
-                location: location,
-            },
-        };
+        if (!sessionId) {
+            sessionId = createSessionId();
+            sessionStorage.setItem('sessionId', sessionId);
+        }
 
-        const assignment = await assignUserToVariant(userAttributes);
-        return assignment;
+        if (!variantId) {
+            const browserInfo = getBrowserInfo();
+            const deviceType = getDeviceType();
+            const os = getOS();
+            const location = await getLocation();
+
+            const userAttributes = {
+                hashed_id: sessionId,
+                experiment_id: experimentId,
+                attributes: {
+                    browser: browserInfo.name,
+                    browser_version: browserInfo.version,
+                    device_type: deviceType,
+                    os: os,
+                    location: location,
+                },
+            };
+
+            const assignment = await assignUserToVariant(userAttributes);
+            variantId = assignment.assignment.variant_id;
+            sessionStorage.setItem('variantId', variantId);
+        }
+
+        return { variant_id: variantId };
     }
 
     global.ExperimentSDK = {
