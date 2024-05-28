@@ -1,4 +1,24 @@
- ## Endpoints
+## JavaScript SDK example usage
+## Installation
+
+Include the ExperimentSDK script in the `<head>` of your website:
+
+```html
+<script src="path/to/experimentsdk.js"></script>
+```
+
+## Example Usage
+
+```
+(async function () {
+    const experimentId = 1;
+    const variantAssignment = await ExperimentSDK.determineVariantForUser(experimentId);
+    console.log('User assigned to variant:', variantAssignment.assignment.variant_id);
+})();
+
+```
+
+## Endpoints
 
 ### User Endpoints
 
